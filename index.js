@@ -27,8 +27,30 @@ async function run() {
     await client.connect();
 
     const BooksCollection = client.db('Library-Management-System').collection('Books');
+    const RecommendationCollection = client.db('Library-Management-System').collection('Recommendations');
 
+    // Get all books from Recommendations collection 
+    app.get('/recommendation', async (req, res) => {
+      const cursor = RecommendationCollection.find();
+      const result = await cursor.toArray();
+      res.send(result);
+    })
 
+    // Get all data from BooksCollection
+    app.get('/books', async (req, res) => {
+      const cursor = BooksCollection.find();
+      const result = await cursor.toArray();
+      res.send(result);
+    })
+
+    // insert book in the BooksCollection
+
+    app.post('/books', async (req, res) => {
+      const book = req.body;
+      console.log(book);
+      const result = await BooksCollection.insertOne(book);
+      res.send(result);
+    })
 
 
 
