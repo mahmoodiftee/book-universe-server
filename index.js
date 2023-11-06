@@ -1,6 +1,6 @@
 require('dotenv').config();
 const express = require('express');
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const port = process.env.PORT || 5000;
 const app = express();
 const cors = require('cors');
@@ -36,6 +36,14 @@ async function run() {
       res.send(result);
     })
 
+    // Get single data by id from BooksCollection
+    app.get('/books/:id', async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) }
+      const result = await BooksCollection.findOne(query);
+      res.send(result);
+    })
+
     // Get all data from BooksCollection
     app.get('/books', async (req, res) => {
       const cursor = BooksCollection.find();
@@ -51,12 +59,29 @@ async function run() {
       const result = await BooksCollection.insertOne(book);
       res.send(result);
     })
+    //update
+    app.put('/books/:id', async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) }
+      const options = { upsert: true };
+      const updatedBook = req.body;
+      const Book = {
+        $set: {
+          title: updatedBook.title,
+          author: updatedBook.author,
+          category: updatedBook.category,
+          quantity: updatedBook.quantity,
+          img: updatedBook.img,
+          rating: updatedBook.rating,
+          short_description: updatedBook.short_description
+        }
+      }
+      const result = await BooksCollection.updateOne(filter, Book, options);
+      res.send(result);
+    })
 
 
-
-
-
-
+    
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
