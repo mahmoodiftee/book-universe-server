@@ -28,6 +28,50 @@ async function run() {
 
     const BooksCollection = client.db('Library-Management-System').collection('Books');
     const RecommendationCollection = client.db('Library-Management-System').collection('Recommendations');
+    const BorrowCollection = client.db('Library-Management-System').collection('BorrowedBooks');
+
+
+    // Get all data from BorrowCollection
+    app.get('/borrowedBooks', async (req, res) => {
+      const cursor = BorrowCollection.find();
+      const result = await cursor.toArray();
+      res.send(result);
+    })
+
+    // insert book in the BooksCollection
+    app.post('/borrowedBooks', async (req, res) => {
+      const book = req.body;
+      console.log(book);
+      const result = await BorrowCollection.insertOne(book);
+      res.send(result);
+    })
+
+
+
+
+
+    // Update the quantity of a book by its ID
+    app.patch('/books/:id', async (req, res) => {
+      const bookId = req.params.id;
+      const newQuantity = req.body.quantity;
+      const filter = { _id: new ObjectId(bookId) };
+      const update = {
+        $set: { quantity: newQuantity }
+      };
+
+      try {
+        const result = await BooksCollection.updateOne(filter, update);
+        if (result.modifiedCount === 1) {
+          res.status(200).json({ message: 'Book quantity updated successfully' });
+        } else {
+          res.status(404).json({ message: 'Book not found' });
+        }
+      } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Internal server error' });
+      }
+    });
+
 
     // Get all books from Recommendations collection 
     app.get('/recommendation', async (req, res) => {
@@ -81,7 +125,7 @@ async function run() {
     })
 
 
-    
+
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
