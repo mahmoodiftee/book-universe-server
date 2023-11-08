@@ -24,7 +24,7 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
-    await client.connect();
+    // await client.connect();
 
     const BooksCollection = client.db('Library-Management-System').collection('Books');
     const CategoryWiseBooksCollection = client.db('Library-Management-System').collection('CategoryBooks');
@@ -160,7 +160,7 @@ async function run() {
 
 
     // Send a ping to confirm a successful connection
-    await client.db("admin").command({ ping: 1 });
+    // await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
   } finally {
     // Ensures that the client will close when you finish/error
@@ -178,41 +178,3 @@ app.listen(port, () => {
   console.log(`Library server is running on port ${port}`);
 });
 
-
-
-
-
-
-
-
-
-
-
-// app.put('/books/:id', async (req, res) => {
-//   const id = req.params.id;
-//   const filter = { _id: new ObjectId(id) }
-//   const options = { upsert: true };
-//   const updatedBook = req.body;
-//   const Book = {
-//     $set: {
-//       title: updatedBook.title,
-//       author: updatedBook.author,
-//       category: updatedBook.category,
-//       quantity: updatedBook.quantity,
-//       img: updatedBook.img,
-//       rating: updatedBook.rating,
-//       short_description: updatedBook.short_description
-//     }
-//   }
-//   try {
-//     const result = await BooksCollection.updateOne(filter, Book, options);
-//     if (result.modifiedCount === 1) {
-//       res.status(200).json({ message: 'Book quantity updated successfully' });
-//     } else {
-//       res.status(404).json({ message: 'Book not found' });
-//     }
-//   } catch (error) {
-//     console.error(error); // Log the error
-//     res.status(500).json({ message: 'Internal server error' });
-//   }
-// });
