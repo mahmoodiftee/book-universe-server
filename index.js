@@ -27,9 +27,25 @@ async function run() {
     await client.connect();
 
     const BooksCollection = client.db('Library-Management-System').collection('Books');
+    const CategoryWiseBooksCollection = client.db('Library-Management-System').collection('CategoryBooks');
     const RecommendationCollection = client.db('Library-Management-System').collection('Recommendations');
     const BorrowCollection = client.db('Library-Management-System').collection('BorrowedBooks');
 
+
+    // Get single data by id from CategoryWiseBooksCollection
+    app.get('/CategoryWiseBooks/:id', async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) }
+      const result = await CategoryWiseBooksCollection.findOne(query);
+      res.send(result);
+    })
+
+    // Get all data from CategoryWiseBooksCollection
+    app.get('/CategoryWiseBooks', async (req, res) => {
+      const cursor = CategoryWiseBooksCollection.find();
+      const result = await cursor.toArray();
+      res.send(result);
+    })
 
     // Get all data from BorrowCollection
     app.get('/borrowedBooks', async (req, res) => {
@@ -38,7 +54,7 @@ async function run() {
       res.send(result);
     })
 
-    // insert book in the BooksCollection
+    // insert book in the BorrowCollection
     app.post('/borrowedBooks', async (req, res) => {
       const book = req.body;
       console.log(book);
@@ -46,8 +62,14 @@ async function run() {
       res.send(result);
     })
 
-
-
+    /// Delete books from BorrowCollection
+    app.delete('/borrowedBooks/:id', async (req, res) => {
+      const id = req.params.id;
+      console.log(id);
+      const query = { _id: new ObjectId(id) }
+      const result = await BorrowCollection.deleteOne(query);
+      res.send(result);
+    });
 
 
     // Update the quantity of a book by its ID
@@ -103,26 +125,37 @@ async function run() {
       const result = await BooksCollection.insertOne(book);
       res.send(result);
     })
-    //update
+
     app.put('/books/:id', async (req, res) => {
-      const id = req.params.id;
-      const filter = { _id: new ObjectId(id) }
-      const options = { upsert: true };
-      const updatedBook = req.body;
-      const Book = {
-        $set: {
-          title: updatedBook.title,
-          author: updatedBook.author,
-          category: updatedBook.category,
-          quantity: updatedBook.quantity,
-          img: updatedBook.img,
-          rating: updatedBook.rating,
-          short_description: updatedBook.short_description
+      try {
+        const id = req.params.id;
+        const filter = { _id: new ObjectId(id) };
+        const updatedBook = req.body;
+        const Book = {
+          $set: {
+            title: updatedBook.title,
+            author: updatedBook.author,
+            category: updatedBook.category,
+            quantity: updatedBook.quantity,
+            img: updatedBook.img,
+            rating: updatedBook.rating,
+            short_description: updatedBook.short_description
+          }
         }
+
+        const result = await BooksCollection.updateOne(filter, Book);
+
+        if (result.matchedCount === 1 && result.modifiedCount === 1) {
+          // Send an acknowledgment message with a success status
+          res.status(200).json({ message: 'Book updated successfully', modifiedCount: result.modifiedCount });
+        } else {
+          res.status(404).json({ message: 'Book not found' });
+        }
+      } catch (error) {
+        console.error(error); // Log the error
+        res.status(500).json({ message: 'Internal server error' });
       }
-      const result = await BooksCollection.updateOne(filter, Book, options);
-      res.send(result);
-    })
+    });
 
 
 
@@ -144,3 +177,42 @@ app.get('/', (req, res) => {
 app.listen(port, () => {
   console.log(`Library server is running on port ${port}`);
 });
+
+
+
+
+
+
+
+
+
+
+
+// app.put('/books/:id', async (req, res) => {
+//   const id = req.params.id;
+//   const filter = { _id: new ObjectId(id) }
+//   const options = { upsert: true };
+//   const updatedBook = req.body;
+//   const Book = {
+//     $set: {
+//       title: updatedBook.title,
+//       author: updatedBook.author,
+//       category: updatedBook.category,
+//       quantity: updatedBook.quantity,
+//       img: updatedBook.img,
+//       rating: updatedBook.rating,
+//       short_description: updatedBook.short_description
+//     }
+//   }
+//   try {
+//     const result = await BooksCollection.updateOne(filter, Book, options);
+//     if (result.modifiedCount === 1) {
+//       res.status(200).json({ message: 'Book quantity updated successfully' });
+//     } else {
+//       res.status(404).json({ message: 'Book not found' });
+//     }
+//   } catch (error) {
+//     console.error(error); // Log the error
+//     res.status(500).json({ message: 'Internal server error' });
+//   }
+// });
